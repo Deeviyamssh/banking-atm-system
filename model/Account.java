@@ -50,8 +50,8 @@ public abstract class Account {
         return sortedTransactions;
     }
     
-    // Protected method to log transactions
-    protected void logTransaction(double amount, TransactionType type, 
+    // Public method to log transactions (used by services for transfers)
+    public void logTransaction(double amount, TransactionType type, 
                                  TransactionStatus status, String description) {
         String txnId = "TXN" + System.currentTimeMillis();
         Transaction transaction = new Transaction(

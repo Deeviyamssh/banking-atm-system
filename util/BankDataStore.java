@@ -16,8 +16,8 @@ public class BankDataStore {
     private Map<String, Account> accounts; // key: accountNumber
     private Map<String, String> customerToAccount; // key: customerId -> accountNumber
     
-    private int customerCounter = 1000;
-    private int accountCounter = 100000;
+    private int customerCounter = 1002; // Start after demo accounts
+    private int accountCounter = 100002; // Start after demo accounts
     
     // Private constructor for Singleton
     private BankDataStore() {
