@@ -26,8 +26,9 @@ public class SavingsAccount extends Account {
             logTransaction(amount, TransactionType.WITHDRAWAL, TransactionStatus.FAILED, 
                           "Withdrawal failed - minimum balance requirement");
             throw new InsufficientFundsException(
-                "Cannot withdraw. Minimum balance of ₹" + MINIMUM_BALANCE + " must be maintained.", 
-                balance
+                "Cannot withdraw. Minimum balance of ₹" + String.format("%,.2f", MINIMUM_BALANCE) + " must be maintained.", 
+                balance, 
+                amount
             );
         }
         

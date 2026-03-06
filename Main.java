@@ -21,55 +21,63 @@ public class Main {
         
         boolean running = true;
         
-        do {
-            if (loggedInCustomerId == null) {
-                int choice = showMainMenu();
-                
-                switch (choice) {
-                    case 1:
-                        loginToAccount();
-                        break;
-                    case 2:
-                        registerNewAccount();
-                        break;
-                    case 3:
-                        System.out.println("\n✓ Thank you for using JavaBank ATM. Goodbye!");
-                        running = false;
-                        break;
-                    default:
-                        System.out.println("⚠ Invalid option. Please try again.");
+        // GLOBAL EXCEPTION HANDLER - wrap entire menu loop
+        while (running) {
+            try {
+                if (loggedInCustomerId == null) {
+                    int choice = showMainMenu();
+                    
+                    switch (choice) {
+                        case 1:
+                            loginToAccount();
+                            break;
+                        case 2:
+                            registerNewAccount();
+                            break;
+                        case 3:
+                            System.out.println("\n✓ Thank you for using JavaBank ATM. Goodbye!");
+                            running = false;
+                            break;
+                        default:
+                            System.out.println("⚠ Invalid option. Please try again.");
+                    }
+                } else {
+                    int choice = showATMMenu();
+                    
+                    switch (choice) {
+                        case 1:
+                            checkBalance();
+                            break;
+                        case 2:
+                            depositMoney();
+                            break;
+                        case 3:
+                            withdrawMoney();
+                            break;
+                        case 4:
+                            transferFunds();
+                            break;
+                        case 5:
+                            viewTransactionHistory();
+                            break;
+                        case 6:
+                            viewMiniStatement();
+                            break;
+                        case 7:
+                            logout();
+                            break;
+                        default:
+                            System.out.println("⚠ Invalid option. Please try again.");
+                    }
                 }
-            } else {
-                int choice = showATMMenu();
-                
-                switch (choice) {
-                    case 1:
-                        checkBalance();
-                        break;
-                    case 2:
-                        depositMoney();
-                        break;
-                    case 3:
-                        withdrawMoney();
-                        break;
-                    case 4:
-                        transferFunds();
-                        break;
-                    case 5:
-                        viewTransactionHistory();
-                        break;
-                    case 6:
-                        viewMiniStatement();
-                        break;
-                    case 7:
-                        logout();
-                        break;
-                    default:
-                        System.out.println("⚠ Invalid option. Please try again.");
-                }
+            } catch (Exception e) {
+                // Global exception handler - catch any unexpected errors
+                System.out.println("\n⚠ System error: " + e.getMessage());
+                System.out.println("Restarting menu...");
+                InputHelper.pause();
+                // Don't exit - continue to next iteration
             }
-            
-        } while (running);
+        }
         
         InputHelper.closeScanner();
     }
@@ -150,13 +158,13 @@ public class Main {
             InputHelper.pause();
             
         } catch (AccountNotFoundException e) {
-            System.out.println("\n✗ " + e.getMessage());
+            System.out.println("\n❌ " + e.getMessage());
             InputHelper.pause();
         } catch (InvalidPINException e) {
-            System.out.println("\n✗ " + e.getMessage());
-            if (e.getAttemptsRemaining() == 0) {
-                System.out.println("🔒 Account locked. Please contact customer service.");
-            }
+            System.out.println("\n❌ " + e.getMessage());
+            InputHelper.pause();
+        } catch (Exception e) {
+            System.out.println("\n❌ Login error: " + e.getMessage());
             InputHelper.pause();
         }
     }
@@ -175,7 +183,7 @@ public class Main {
             int confirmPin = InputHelper.promptPIN("Confirm PIN");
             
             if (pin != confirmPin) {
-                System.out.println("\n✗ PINs do not match. Registration cancelled.");
+                System.out.println("\n❌ PINs do not match. Registration cancelled.");
                 InputHelper.pause();
                 return;
             }
@@ -191,7 +199,7 @@ public class Main {
             } else if (typeChoice == 2) {
                 accountType = AccountType.CURRENT;
             } else {
-                System.out.println("\n✗ Invalid account type. Registration cancelled.");
+                System.out.println("\n❌ Invalid account type. Registration cancelled.");
                 InputHelper.pause();
                 return;
             }
@@ -209,10 +217,10 @@ public class Main {
             InputHelper.pause();
             
         } catch (IllegalArgumentException e) {
-            System.out.println("\n✗ Registration failed: " + e.getMessage());
+            System.out.println("\n❌ Registration failed: " + e.getMessage());
             InputHelper.pause();
         } catch (Exception e) {
-            System.out.println("\n✗ Unexpected error: " + e.getMessage());
+            System.out.println("\n❌ Unexpected error: " + e.getMessage());
             InputHelper.pause();
         }
     }
@@ -264,6 +272,13 @@ public class Main {
             
             double amount = InputHelper.promptDouble("Enter amount to deposit: ₹ ");
             
+            // Additional validation for negative amounts
+            if (amount <= 0) {
+                System.out.println("\n❌ Amount must be positive.");
+                InputHelper.pause();
+                return;
+            }
+            
             accountService.deposit(account.getAccountNumber(), amount);
             
             Account updatedAccount = accountService.getAccountByCustomerId(loggedInCustomerId);
@@ -277,10 +292,10 @@ public class Main {
             InputHelper.pause();
             
         } catch (IllegalArgumentException e) {
-            System.out.println("\n✗ " + e.getMessage());
+            System.out.println("\n❌ " + e.getMessage());
             InputHelper.pause();
         } catch (Exception e) {
-            System.out.println("\n✗ Error: " + e.getMessage());
+            System.out.println("\n❌ Error: " + e.getMessage());
             InputHelper.pause();
         }
     }
@@ -311,13 +326,16 @@ public class Main {
             InputHelper.pause();
             
         } catch (InsufficientFundsException e) {
-            System.out.println("\n✗ " + e.getMessage());
+            System.out.println("\n❌ " + e.getMessage());
+            InputHelper.pause();
+        } catch (exception.DailyLimitExceededException e) {
+            System.out.println("\n❌ " + e.getMessage());
             InputHelper.pause();
         } catch (IllegalArgumentException e) {
-            System.out.println("\n✗ " + e.getMessage());
+            System.out.println("\n❌ " + e.getMessage());
             InputHelper.pause();
         } catch (Exception e) {
-            System.out.println("\n✗ Error: " + e.getMessage());
+            System.out.println("\n❌ Error: " + e.getMessage());
             InputHelper.pause();
         }
     }
@@ -350,16 +368,16 @@ public class Main {
             InputHelper.pause();
             
         } catch (InsufficientFundsException e) {
-            System.out.println("\n✗ " + e.getMessage());
+            System.out.println("\n❌ " + e.getMessage());
             InputHelper.pause();
         } catch (AccountNotFoundException e) {
-            System.out.println("\n✗ " + e.getMessage());
+            System.out.println("\n❌ " + e.getMessage());
             InputHelper.pause();
         } catch (IllegalArgumentException e) {
-            System.out.println("\n✗ " + e.getMessage());
+            System.out.println("\n❌ " + e.getMessage());
             InputHelper.pause();
         } catch (Exception e) {
-            System.out.println("\n✗ Error: " + e.getMessage());
+            System.out.println("\n❌ Error: " + e.getMessage());
             InputHelper.pause();
         }
     }

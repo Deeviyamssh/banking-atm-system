@@ -1,6 +1,7 @@
 package util;
 
 import model.*;
+import exception.AccountNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Collection;
@@ -8,6 +9,7 @@ import java.util.Collection;
 /**
  * In-memory data store for customers and accounts (Singleton pattern)
  * Simulates database functionality
+ * HARDENED: Never returns null, always throws exceptions for missing data
  */
 public class BankDataStore {
     private static BankDataStore instance;
@@ -62,31 +64,65 @@ public class BankDataStore {
         System.out.println("2. Current Account - ACC100002, PIN: 5678, Balance: ₹15000.00");
     }
     
-    // Add customer
+    // Add customer with null check
     public void addCustomer(Customer customer) {
+        if (customer == null) {
+            throw new IllegalArgumentException("Customer cannot be null");
+        }
         customers.put(customer.getCustomerId(), customer);
     }
     
-    // Add account
+    // Add account with null check
     public void addAccount(Account account) {
+        if (account == null) {
+            throw new IllegalArgumentException("Account cannot be null");
+        }
         accounts.put(account.getAccountNumber(), account);
         customerToAccount.put(account.getCustomer().getCustomerId(), account.getAccountNumber());
     }
     
-    // Find customer by ID
+    // Find customer by ID - NEVER returns null, throws exception
     public Customer findCustomerById(String customerId) {
-        return customers.get(customerId);
+        if (customerId == null || customerId.trim().isEmpty()) {
+            throw new IllegalArgumentException("Customer ID cannot be null or empty");
+        }
+        
+        Customer customer = customers.get(customerId);
+        if (customer == null) {
+            throw new AccountNotFoundException(customerId);
+        }
+        return customer;
     }
     
-    // Find account by account number
+    // Find account by account number - NEVER returns null, throws exception
     public Account findAccountByNumber(String accountNumber) {
-        return accounts.get(accountNumber);
+        if (accountNumber == null || accountNumber.trim().isEmpty()) {
+            throw new IllegalArgumentException("Account number cannot be null or empty");
+        }
+        
+        Account account = accounts.get(accountNumber);
+        if (account == null) {
+            throw new AccountNotFoundException(accountNumber);
+        }
+        return account;
     }
     
-    // Find account by customer ID
+    // Find account by customer ID - NEVER returns null, throws exception
     public Account findAccountByCustomerId(String customerId) {
+        if (customerId == null || customerId.trim().isEmpty()) {
+            throw new IllegalArgumentException("Customer ID cannot be null or empty");
+        }
+        
         String accountNumber = customerToAccount.get(customerId);
-        return accountNumber != null ? accounts.get(accountNumber) : null;
+        if (accountNumber == null) {
+            throw new AccountNotFoundException(customerId);
+        }
+        
+        Account account = accounts.get(accountNumber);
+        if (account == null) {
+            throw new AccountNotFoundException(customerId);
+        }
+        return account;
     }
     
     // Get all accounts
@@ -106,11 +142,17 @@ public class BankDataStore {
     
     // Check if account exists
     public boolean accountExists(String accountNumber) {
+        if (accountNumber == null || accountNumber.trim().isEmpty()) {
+            return false;
+        }
         return accounts.containsKey(accountNumber);
     }
     
     // Check if customer exists
     public boolean customerExists(String customerId) {
+        if (customerId == null || customerId.trim().isEmpty()) {
+            return false;
+        }
         return customers.containsKey(customerId);
     }
 }

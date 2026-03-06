@@ -36,8 +36,9 @@ public class CurrentAccount extends Account {
             logTransaction(amount, TransactionType.WITHDRAWAL, TransactionStatus.FAILED, 
                           "Withdrawal failed - overdraft limit exceeded");
             throw new InsufficientFundsException(
-                "Cannot withdraw. Overdraft limit of ₹" + OVERDRAFT_LIMIT + " exceeded.", 
-                balance + OVERDRAFT_LIMIT
+                "Cannot withdraw. Overdraft limit of ₹" + String.format("%,.2f", OVERDRAFT_LIMIT) + " exceeded.", 
+                balance + OVERDRAFT_LIMIT,
+                amount
             );
         }
         

@@ -8,7 +8,7 @@ public class DailyLimitExceededException extends RuntimeException {
     private double attempted;
     
     public DailyLimitExceededException(double dailyLimit, double attempted) {
-        super(String.format("Daily withdrawal limit exceeded. Limit: ₹%.2f, Attempted: ₹%.2f", 
+        super(String.format("Daily limit of ₹%,.2f exceeded. You attempted ₹%,.2f today.", 
               dailyLimit, attempted));
         this.dailyLimit = dailyLimit;
         this.attempted = attempted;
