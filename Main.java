@@ -123,8 +123,8 @@ public class Main {
             System.out.printf("║       ATM MENU — %-30s ║%n", loggedInCustomerId);
             System.out.println("╠════════════════════════════════════════════════╣");
             System.out.printf("║  Welcome, %-37s║%n", customer.getFullName());
-            System.out.printf("║  Account: %-37s║%n", account.getAccountNumber());
-            System.out.printf("║  Balance: ₹%-35.2f║%n", account.getBalance());
+            System.out.printf("║  Account: %-37s║%n", Formatter.maskAccountNumber(account.getAccountNumber()));
+            System.out.printf("║  Balance: %-37s║%n", Formatter.formatAmount(account.getBalance()));
             System.out.println("╠════════════════════════════════════════════════╣");
             System.out.println("║  1. Check Balance                              ║");
             System.out.println("║  2. Deposit                                    ║");
@@ -142,7 +142,7 @@ public class Main {
     }
     
     /**
-     * Login flow
+     * Login flow with account summary
      */
     private static void loginToAccount() {
         InputHelper.printHeader("LOGIN TO ACCOUNT");
@@ -155,6 +155,21 @@ public class Main {
             loggedInCustomerId = customerId;
             
             System.out.println("\n✓ Welcome back, " + customer.getFullName() + "!");
+            
+            // BONUS FEATURE: Account Summary on Login
+            try {
+                Account account = accountService.getAccountByCustomerId(customerId);
+                System.out.println("\n╔══════════════════════════════════════════════╗");
+                System.out.println("║           ACCOUNT SUMMARY                    ║");
+                System.out.println("╠══════════════════════════════════════════════╣");
+                System.out.println("║  Last login: Not available (first login)     ║");
+                System.out.printf("║  Current Balance: %-27s║%n", Formatter.formatAmount(account.getBalance()));
+                System.out.println("║  Pending alerts: None                        ║");
+                System.out.println("╚══════════════════════════════════════════════╝");
+            } catch (Exception e) {
+                // Silently skip if account summary fails
+            }
+            
             InputHelper.pause();
             
         } catch (AccountNotFoundException e) {
@@ -226,7 +241,7 @@ public class Main {
     }
     
     /**
-     * Check balance
+     * Check balance with interest notice for savings accounts
      */
     private static void checkBalance() {
         InputHelper.printHeader("CHECK BALANCE");
@@ -236,26 +251,29 @@ public class Main {
             
             System.out.println("\nAccount: " + account.getAccountNumber() + "  [" + account.getAccountType() + "]");
             System.out.println("─────────────────────────────────────────────────");
-            System.out.printf("Available Balance:  ₹ %,.2f%n", account.getBalance());
+            System.out.println("Available Balance:  " + Formatter.formatAmount(account.getBalance()));
             System.out.println("Account Holder:     " + account.getCustomer().getFullName());
             System.out.println("Status:             " + (account.isActive() ? "ACTIVE" : "INACTIVE"));
             
             if (account instanceof SavingsAccount) {
                 SavingsAccount sa = (SavingsAccount) account;
-                System.out.println("Minimum Balance:    ₹ " + sa.getMinimumBalance());
+                System.out.println("Minimum Balance:    " + Formatter.formatAmount(sa.getMinimumBalance()));
                 System.out.println("Interest Rate:      " + sa.getInterestRate() + "%");
+                
+                // BONUS FEATURE: Interest Notice
+                System.out.println("\n💰 Monthly interest rate: " + sa.getInterestRate() + "% — Interest will be credited on 1st of next month");
             } else if (account instanceof CurrentAccount) {
                 CurrentAccount ca = (CurrentAccount) account;
-                System.out.println("Overdraft Limit:    ₹ " + ca.getOverdraftLimit());
-                System.out.println("Daily Limit:        ₹ " + ca.getDailyWithdrawalLimit());
-                System.out.println("Today Withdrawn:    ₹ " + ca.getTodayWithdrawnAmount());
+                System.out.println("Overdraft Limit:    " + Formatter.formatAmount(ca.getOverdraftLimit()));
+                System.out.println("Daily Limit:        " + Formatter.formatAmount(ca.getDailyWithdrawalLimit()));
+                System.out.println("Today Withdrawn:    " + Formatter.formatAmount(ca.getTodayWithdrawnAmount()));
             }
             
             System.out.println("─────────────────────────────────────────────────");
             InputHelper.pause();
             
         } catch (Exception e) {
-            System.out.println("\n✗ Error: " + e.getMessage());
+            System.out.println("\n❌ Error: " + e.getMessage());
             InputHelper.pause();
         }
     }
@@ -285,9 +303,9 @@ public class Main {
             
             System.out.println("\n✅ Deposit successful!");
             System.out.println("─────────────────────────────────────────────────");
-            System.out.printf("Amount Deposited:   ₹ %,.2f%n", amount);
-            System.out.printf("Previous Balance:   ₹ %,.2f%n", currentBalance);
-            System.out.printf("Current Balance:    ₹ %,.2f%n", updatedAccount.getBalance());
+            System.out.println("Amount Deposited:   " + Formatter.formatAmount(amount));
+            System.out.println("Previous Balance:   " + Formatter.formatAmount(currentBalance));
+            System.out.println("Current Balance:    " + Formatter.formatAmount(updatedAccount.getBalance()));
             System.out.println("─────────────────────────────────────────────────");
             InputHelper.pause();
             
@@ -310,7 +328,7 @@ public class Main {
             Account account = accountService.getAccountByCustomerId(loggedInCustomerId);
             double currentBalance = account.getBalance();
             
-            System.out.printf("Available Balance: ₹ %,.2f%n", currentBalance);
+            System.out.println("Available Balance: " + Formatter.formatAmount(currentBalance));
             double amount = InputHelper.promptDouble("Enter amount to withdraw (multiples of ₹100): ₹ ");
             
             accountService.withdraw(account.getAccountNumber(), amount);
@@ -319,9 +337,9 @@ public class Main {
             
             System.out.println("\n✅ Withdrawal successful!");
             System.out.println("─────────────────────────────────────────────────");
-            System.out.printf("Amount Withdrawn:   ₹ %,.2f%n", amount);
-            System.out.printf("Previous Balance:   ₹ %,.2f%n", currentBalance);
-            System.out.printf("Current Balance:    ₹ %,.2f%n", updatedAccount.getBalance());
+            System.out.println("Amount Withdrawn:   " + Formatter.formatAmount(amount));
+            System.out.println("Previous Balance:   " + Formatter.formatAmount(currentBalance));
+            System.out.println("Current Balance:    " + Formatter.formatAmount(updatedAccount.getBalance()));
             System.out.println("─────────────────────────────────────────────────");
             InputHelper.pause();
             
@@ -350,7 +368,7 @@ public class Main {
             Account account = accountService.getAccountByCustomerId(loggedInCustomerId);
             double currentBalance = account.getBalance();
             
-            System.out.printf("Available Balance: ₹ %,.2f%n", currentBalance);
+            System.out.println("Available Balance: " + Formatter.formatAmount(currentBalance));
             String toAccountNumber = InputHelper.promptString("Enter destination account number: ");
             double amount = InputHelper.promptDouble("Enter amount to transfer: ₹ ");
             
@@ -360,10 +378,10 @@ public class Main {
             
             System.out.println("\n✅ Transfer successful!");
             System.out.println("─────────────────────────────────────────────────");
-            System.out.printf("Amount Transferred: ₹ %,.2f%n", amount);
-            System.out.println("To Account:         " + toAccountNumber);
-            System.out.printf("Previous Balance:   ₹ %,.2f%n", currentBalance);
-            System.out.printf("Current Balance:    ₹ %,.2f%n", updatedAccount.getBalance());
+            System.out.println("Amount Transferred: " + Formatter.formatAmount(amount));
+            System.out.println("To Account:         " + Formatter.maskAccountNumber(toAccountNumber));
+            System.out.println("Previous Balance:   " + Formatter.formatAmount(currentBalance));
+            System.out.println("Current Balance:    " + Formatter.formatAmount(updatedAccount.getBalance()));
             System.out.println("─────────────────────────────────────────────────");
             InputHelper.pause();
             
@@ -400,19 +418,18 @@ public class Main {
                                 "#", "Date", "Type", "Amount", "Status");
                 System.out.println("─────────────────────────────────────────────────────────────────────────");
                 
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-yy HH:mm");
                 int count = 1;
                 
                 for (Transaction txn : transactions) {
-                    String dateStr = txn.getTimestamp().format(formatter);
+                    String dateStr = Formatter.formatDate(txn.getTimestamp());
                     String type = txn.getTransactionType().toString();
                     String amountStr;
                     
                     if (txn.getTransactionType() == TransactionType.DEPOSIT || 
                         txn.getTransactionType() == TransactionType.TRANSFER_IN) {
-                        amountStr = String.format("+₹%,.2f", txn.getAmount());
+                        amountStr = "+" + Formatter.formatAmount(txn.getAmount());
                     } else {
-                        amountStr = String.format("-₹%,.2f", txn.getAmount());
+                        amountStr = "-" + Formatter.formatAmount(txn.getAmount());
                     }
                     
                     String status = txn.getStatus() == TransactionStatus.SUCCESS ? "✓" : "✗";
@@ -428,7 +445,7 @@ public class Main {
             InputHelper.pause();
             
         } catch (Exception e) {
-            System.out.println("\n✗ Error: " + e.getMessage());
+            System.out.println("\n❌ Error: " + e.getMessage());
             InputHelper.pause();
         }
     }

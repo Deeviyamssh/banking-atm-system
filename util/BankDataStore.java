@@ -18,7 +18,7 @@ public class BankDataStore {
     private Map<String, Account> accounts; // key: accountNumber
     private Map<String, String> customerToAccount; // key: customerId -> accountNumber
     
-    private int customerCounter = 1002; // Start after demo accounts
+    private int customerCounter = 2; // Start after demo accounts (CUST0001, CUST0002)
     private int accountCounter = 100002; // Start after demo accounts
     
     // Private constructor for Singleton
@@ -42,26 +42,33 @@ public class BankDataStore {
     // Initialize demo data
     private void initializeDemoData() {
         // Demo Customer 1 - Savings Account
-        Customer customer1 = new Customer("CUST1001", "Rajesh Kumar", "rajesh@email.com", 1234);
+        Customer customer1 = new Customer("CUST0001", "Rahul Sharma", "rahul@email.com", 1234);
         SavingsAccount savingsAccount = new SavingsAccount("ACC100001", customer1);
-        savingsAccount.deposit(5000.0); // Initial deposit
+        savingsAccount.deposit(15000.0); // Initial deposit
         
         customers.put(customer1.getCustomerId(), customer1);
         accounts.put(savingsAccount.getAccountNumber(), savingsAccount);
         customerToAccount.put(customer1.getCustomerId(), savingsAccount.getAccountNumber());
         
         // Demo Customer 2 - Current Account
-        Customer customer2 = new Customer("CUST1002", "Priya Sharma", "priya@email.com", 5678);
+        Customer customer2 = new Customer("CUST0002", "Priya Mehta", "priya@email.com", 5678);
         CurrentAccount currentAccount = new CurrentAccount("ACC100002", customer2);
-        currentAccount.deposit(15000.0); // Initial deposit
+        currentAccount.deposit(50000.0); // Initial deposit
         
         customers.put(customer2.getCustomerId(), customer2);
         accounts.put(currentAccount.getAccountNumber(), currentAccount);
         customerToAccount.put(customer2.getCustomerId(), currentAccount.getAccountNumber());
         
-        System.out.println("Demo accounts loaded:");
-        System.out.println("1. Savings Account - ACC100001, PIN: 1234, Balance: ₹5000.00");
-        System.out.println("2. Current Account - ACC100002, PIN: 5678, Balance: ₹15000.00");
+        // Print demo credentials in a box
+        System.out.println("\n╔══════════════════════════════════════════════╗");
+        System.out.println("║           DEMO CREDENTIALS                   ║");
+        System.out.println("╠══════════════════════════════════════════════╣");
+        System.out.println("║  Savings:  CUST0001  PIN: 1234               ║");
+        System.out.println("║            Balance: ₹15,000.00               ║");
+        System.out.println("║                                              ║");
+        System.out.println("║  Current:  CUST0002  PIN: 5678               ║");
+        System.out.println("║            Balance: ₹50,000.00               ║");
+        System.out.println("╚══════════════════════════════════════════════╝");
     }
     
     // Add customer with null check
