@@ -8,41 +8,61 @@ import exception.DailyLimitExceededException;
  * Demonstrates INHERITANCE and POLYMORPHISM
  */
 public class CurrentAccount extends Account {
-    private double overdraftLimit;
-    private double dailyWithdrawalLimit;
-    private double todayWithdrawnAmount;
+    private static final double OVERDRAFT_LIMIT = 10000.0;
+    private static final double DAILY_WITHDRAWAL_LIMIT = 50000.0;
+    private double todayWithdrawn;
     
-    public CurrentAccount(String accountNumber) {
-        super(accountNumber, AccountType.CURRENT);
-        this.overdraftLimit = 5000.0;
-        this.dailyWithdrawalLimit = 50000.0;
-        this.todayWithdrawnAmount = 0.0;
+    public CurrentAccount(String accountNumber, Customer customer) {
+        super(accountNumber, AccountType.CURRENT, customer);
+        this.todayWithdrawn = 0.0;
     }
     
-    // TODO: Override withdraw - allow overdraft (POLYMORPHISM)
+    // Override withdraw - allow overdraft (POLYMORPHISM)
     @Override
     public boolean withdraw(double amount) throws InsufficientFundsException, DailyLimitExceededException {
-        // TODO: Check daily limit
-        // TODO: Check if (balance - amount) >= -overdraftLimit
-        // TODO: If yes, deduct and update todayWithdrawnAmount
-        // TODO: If no, throw appropriate exception
-        return false;
+        if (amount <= 0) {
+            throw new IllegalArgumentException("Withdrawal amount must be positive");
+        }
+        
+        // Check daily withdrawal limit
+        if (todayWithdrawn + amount > DAILY_WITHDRAWAL_LIMIT) {
+            logTransaction(amount, TransactionType.WITHDRAWAL, TransactionStatus.FAILED, 
+                          "Withdrawal failed - daily limit exceeded");
+            throw new DailyLimitExceededException(DAILY_WITHDRAWAL_LIMIT, todayWithdrawn + amount);
+        }
+        
+        // Check if withdrawal exceeds overdraft limit
+        if ((balance - amount) < -OVERDRAFT_LIMIT) {
+            logTransaction(amount, TransactionType.WITHDRAWAL, TransactionStatus.FAILED, 
+                          "Withdrawal failed - overdraft limit exceeded");
+            throw new InsufficientFundsException(
+                "Cannot withdraw. Overdraft limit of ₹" + OVERDRAFT_LIMIT + " exceeded.", 
+                balance + OVERDRAFT_LIMIT
+            );
+        }
+        
+        // Perform withdrawal
+        balance -= amount;
+        todayWithdrawn += amount;
+        logTransaction(amount, TransactionType.WITHDRAWAL, TransactionStatus.SUCCESS, 
+                      "Withdrawal of ₹" + String.format("%.2f", amount));
+        return true;
     }
     
-    // TODO: Reset daily withdrawal counter (call this daily)
+    // Reset daily withdrawal counter (call this daily)
     public void resetDailyLimit() {
-        this.todayWithdrawnAmount = 0.0;
+        this.todayWithdrawn = 0.0;
     }
     
     public double getOverdraftLimit() {
-        return overdraftLimit;
+        return OVERDRAFT_LIMIT;
     }
     
     public double getDailyWithdrawalLimit() {
-        return dailyWithdrawalLimit;
+        return DAILY_WITHDRAWAL_LIMIT;
     }
     
     public double getTodayWithdrawnAmount() {
-        return todayWithdrawnAmount;
+        return todayWithdrawn;
     }
 }
